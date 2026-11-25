@@ -1,0 +1,197 @@
+{
+  "entities": {
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized administrator registry entry.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "maxLength": 200 },
+        "displayName": { "type": "string", "maxLength": 120 },
+        "role": { "type": "string", "enum": ["admin", "superadmin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Public digital product catalog item (no private file URLs).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 2, "maxLength": 160 },
+        "slug": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "category": { "type": "string", "enum": ["E-book", "Template Website", "Template Bisnis", "Panduan Praktis", "Produk Edukasi", "Cerita Anak", "Karya Digital"] },
+        "price": { "type": "number" },
+        "targetAudience": { "type": "string", "maxLength": 100 },
+        "shortDescription": { "type": "string", "minLength": 5, "maxLength": 320 },
+        "fullDescription": { "type": "string", "minLength": 5, "maxLength": 4000 },
+        "benefits": { "type": "array" },
+        "contents": { "type": "array" },
+        "coverUrl": { "type": "string", "maxLength": 1000 },
+        "active": { "type": "boolean" },
+        "featured": { "type": "boolean" },
+        "isDemo": { "type": "boolean" },
+        "hasPrivateFile": { "type": "boolean" },
+        "source": { "type": "string", "enum": ["firestore", "sheets_import"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "slug", "category", "price", "shortDescription", "fullDescription", "coverUrl", "active", "featured", "isDemo", "hasPrivateFile", "createdAt", "updatedAt"]
+    },
+    "ProductFile": {
+      "title": "ProductFile",
+      "description": "Private digital product file metadata accessible only to admins.",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "fileId": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "fileName": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "mimeType": { "type": "string", "maxLength": 120 },
+        "sizeBytes": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["productId", "fileId", "fileName", "mimeType", "sizeBytes", "updatedAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer order with PII restricted to admin or owning authenticated buyer.",
+      "type": "object",
+      "properties": {
+        "orderCode": { "type": "string", "minLength": 4, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "buyerUid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "customerName": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "customerEmail": { "type": "string", "minLength": 5, "maxLength": 180 },
+        "customerWhatsapp": { "type": "string", "minLength": 8, "maxLength": 30 },
+        "paymentMethod": { "type": "string", "enum": ["Transfer Bank", "QRIS"] },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Menunggu Pembayaran", "Menunggu Verifikasi", "Dibayar", "Ditolak", "Selesai", "Dibatalkan"] },
+        "accessKeyHash": { "type": "string", "minLength": 16, "maxLength": 128 },
+        "serverSignature": { "type": "string", "minLength": 16, "maxLength": 128 },
+        "adminNote": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["orderCode", "buyerUid", "customerName", "customerEmail", "customerWhatsapp", "paymentMethod", "items", "subtotal", "totalAmount", "status", "accessKeyHash", "serverSignature", "createdAt", "updatedAt"]
+    },
+    "OrderReceipt": {
+      "title": "OrderReceipt",
+      "description": "Non-PII order status & proof projection keyed by unique orderCode for buyer confirmation lookup.",
+      "type": "object",
+      "properties": {
+        "orderCode": { "type": "string", "minLength": 4, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "status": { "type": "string", "enum": ["Menunggu Pembayaran", "Menunggu Verifikasi", "Dibayar", "Ditolak", "Selesai", "Dibatalkan"] },
+        "paymentMethod": { "type": "string", "enum": ["Transfer Bank", "QRIS"] },
+        "subtotal": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "itemSummaries": { "type": "array" },
+        "accessKeyHash": { "type": "string", "minLength": 16, "maxLength": 128 },
+        "proofUrl": { "type": "string", "maxLength": 500 },
+        "downloadGrants": { "type": "array" },
+        "adminNote": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["orderCode", "status", "paymentMethod", "subtotal", "totalAmount", "itemSummaries", "accessKeyHash", "createdAt", "updatedAt"]
+    },
+    "DownloadToken": {
+      "title": "DownloadToken",
+      "description": "Admin-minted secure download entitlement linking an approved order to a private product file.",
+      "type": "object",
+      "properties": {
+        "tokenId": { "type": "string", "minLength": 16, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "orderCode": { "type": "string", "minLength": 4, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "productId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "productTitle": { "type": "string", "maxLength": 180 },
+        "fileId": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "fileName": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "enabled": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["tokenId", "orderCode", "productId", "productTitle", "fileId", "fileName", "enabled", "createdAt"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Customer testimonial displayed on storefront and managed by admin.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "roleOrCity": { "type": "string", "maxLength": 100 },
+        "avatarUrl": { "type": "string", "maxLength": 500 },
+        "rating": { "type": "number" },
+        "comment": { "type": "string", "minLength": 5, "maxLength": 1000 },
+        "dateLabel": { "type": "string", "maxLength": 60 },
+        "visible": { "type": "boolean" },
+        "isDemo": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "customerName", "rating", "comment", "dateLabel", "visible", "isDemo", "createdAt", "updatedAt"]
+    },
+    "StoreSettings": {
+      "title": "StoreSettings",
+      "description": "Store identity, payment details, brand assets, and appearance configuration.",
+      "type": "object",
+      "properties": {
+        "storeName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "tagline": { "type": "string", "maxLength": 180 },
+        "heroTitle": { "type": "string", "maxLength": 160 },
+        "heroDescription": { "type": "string", "maxLength": 500 },
+        "promoText": { "type": "string", "maxLength": 200 },
+        "showPromo": { "type": "boolean" },
+        "logoUrl": { "type": "string", "maxLength": 500 },
+        "bannerUrl": { "type": "string", "maxLength": 500 },
+        "watermarkUrl": { "type": "string", "maxLength": 500 },
+        "faviconUrl": { "type": "string", "maxLength": 500 },
+        "qrisUrl": { "type": "string", "maxLength": 500 },
+        "whatsappNumber": { "type": "string", "maxLength": 30 },
+        "contactEmail": { "type": "string", "maxLength": 160 },
+        "bankName": { "type": "string", "maxLength": 80 },
+        "bankAccountNumber": { "type": "string", "maxLength": 60 },
+        "bankAccountHolder": { "type": "string", "maxLength": 120 },
+        "paymentInstructions": { "type": "string", "maxLength": 1000 },
+        "footerDescription": { "type": "string", "maxLength": 400 },
+        "footerCopyright": { "type": "string", "maxLength": 160 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["storeName", "tagline", "heroTitle", "heroDescription", "whatsappNumber", "contactEmail", "bankName", "bankAccountNumber", "bankAccountHolder", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/admins/{uid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Verified administrators registry."
+    },
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Public digital product catalog."
+    },
+    "/product_files/{productId}": {
+      "schema": { "$ref": "#/entities/ProductFile" },
+      "description": "Admin-only private digital file metadata."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Full customer order records with PII."
+    },
+    "/order_receipts/{orderCode}": {
+      "schema": { "$ref": "#/entities/OrderReceipt" },
+      "description": "Non-PII order status & proof projection for confirmation lookup."
+    },
+    "/download_tokens/{tokenId}": {
+      "schema": { "$ref": "#/entities/DownloadToken" },
+      "description": "Admin-issued download tokens for verified paid orders."
+    },
+    "/reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "Customer reviews and testimonials."
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/StoreSettings" },
+      "description": "Store settings and appearance configuration."
+    }
+  }
+}

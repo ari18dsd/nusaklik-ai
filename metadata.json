@@ -1,0 +1,6 @@
+{
+  "name": "NusaKlik.id",
+  "description": "Temukan Ide, Wujudkan Karya — Toko produk digital terkurasi untuk e-book, template website, template bisnis, panduan praktis, produk edukasi, dan cerita anak.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

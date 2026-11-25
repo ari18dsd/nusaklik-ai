@@ -1,0 +1,47 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Default deny all
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerified() && (
+        request.auth.token.email == 'akunob300@gmail.com' ||
+        firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Public brand assets & product covers (read-only public, admin-only write)
+    match /public_assets/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() &&
+        request.resource.size <= 5 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/.*');
+    }
+
+    // Payment proofs (Admin-only read; strictly size & MIME constrained upload)
+    match /payment_proofs/{orderCode}/{fileName} {
+      allow read: if isAdmin();
+      allow write: if request.resource.size <= 5 * 1024 * 1024 &&
+        (request.resource.contentType.matches('image/(jpeg|png|webp)') ||
+         request.resource.contentType == 'application/pdf');
+    }
+
+    // Private digital products (Never publicly readable; Admin-only write, server-gated download)
+    match /private_products/{productId}/{fileName} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() &&
+        request.resource.size <= 50 * 1024 * 1024;
+    }
+  }
+}
