@@ -1,0 +1,16 @@
+node_modules
+dist
+build
+coverage
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+private_storage
+public_uploads
+*.log
+.DS_Store
+walkthrough.md
+security_spec.md
+firestore.rules.test.ts

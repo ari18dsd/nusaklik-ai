@@ -5,7 +5,6 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import multer from 'multer';
 import { getApp, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { createServer as createViteServer } from 'vite';
 import {
   deleteStoredObject,
   getStorageDriver,
@@ -226,6 +225,7 @@ const privateProductUpload = multer({
 
 async function startServer() {
   const app = express();
+  app.set('trust proxy', 1);
   app.use(express.json({ limit: '1mb' }));
 
   app.use(
@@ -933,6 +933,7 @@ async function startServer() {
   });
 
   if (!IS_PRODUCTION) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -946,10 +947,20 @@ async function startServer() {
     });
   }
 
-  const PORT = Number(process.env.PORT || 3000);
-  app.listen(PORT, '0.0.0.0', () => {
+  const parsedPort = Number(process.env.PORT);
+  const PORT = Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : 3000;
+  const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`NusaKlik.id server running on http://0.0.0.0:${PORT}`);
   });
+
+  const shutdown = () => {
+    server.close(() => {
+      process.exit(0);
+    });
+    setTimeout(() => process.exit(0), 5000).unref();
+  };
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 }
 
 startServer();
